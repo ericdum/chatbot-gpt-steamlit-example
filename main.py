@@ -1,5 +1,6 @@
 from openai import OpenAI
 import streamlit as st
+import os
 
 st.set_page_config(layout="wide")
 st.title("Yungu Highschool Chatbot")
@@ -28,7 +29,7 @@ with col2:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.text_input("What is up?"):
+    if prompt := st.text_input("Chat:"):
         if len(st.session_state.messages) < 2 or prompt != st.session_state.messages[-2]['content']:
             st.session_state.messages.append({"role": "user", "content": prompt})
             # with st.chat_message("user"):
