@@ -1,31 +1,34 @@
 from openai import OpenAI
 import streamlit as st
+import streamlit.components.v1 as components
 import os
+
+query_params = st.experimental_get_query_params()
+if 'student' in query_params:
+    selected_user = query_params['student'][0].lower()
+else:
+    #selected_user = st.selectbox("Talk to:", list(user_data.keys()))
+    selected_user = "jerry"
 
 st.set_page_config(
     page_title="云谷学校“如何指导学生长期项目”面谈模拟器",
-    page_icon=":robot:",
+    page_icon="https://yungu.org/favicon.ico",
     layout="wide"
 )
+
+custom_style = """
+<style>
+.block-container {
+  padding-top: 2rem;
+}
+iframe {
+display:none;
+}
+</style>
+"""
+st.markdown(custom_style, unsafe_allow_html=True)
+#st.markdown('<div style="position:absolute;width:100%;top:0;left:0;">this is a logo</div>', unsafe_allow_html=True)
 st.title("云谷学校“如何指导学生长期项目”面谈模拟器")
-
-
-@st.cache_resource
-def load_avatar():
-  with open("./avatar/jerry", 'r') as file:
-    jerry = file.read()
-  with open("./avatar/spike", 'r') as file:
-    spike = file.read()
-  with open("./avatar/tom", 'r') as file:
-    tom = file.read()
-
-  user_data = {
-    "Jerry": "data:image/jpeg;base64,"+jerry,
-    "Spike": "data:image/jpeg;base64,"+spike,
-    "Tom": "data:image/jpeg;base64,"+tom,
-  }
-
-  return user_data
 
 
 @st.cache_resource
@@ -34,14 +37,22 @@ def get_model():
         api_key=os.environ.get("OPENAI_API_KEY")
   )
 
-  with open("./prompt", 'r') as file:
-    prompt = file.read()
+  prompts = {}
+  avatars = {}
+  for name in os.listdir('./prompts'):
+    with open("./prompts/"+name, 'r') as file:
+      prompts[name] = file.read()
 
-    return client, prompt
+  for name in os.listdir('./avatar'):
+    with open("./avatar/"+name, 'r') as file:
+      avatars[name] = "data:image/jpeg;base64,"+file.read()
+  
+  return client, prompts, avatars
 
 
-client, prompt = get_model()
-user_data = load_avatar()
+client, prompts, avatars = get_model()
+prompt = prompts[selected_user]
+avatar = avatars[selected_user]
 
 if "messages" not in st.session_state:
     st.session_state.messages = [{
@@ -56,15 +67,11 @@ if "openai_model" not in st.session_state:
 col1, col2 = st.columns([0.3, 0.7])
 prompt_text = st.chat_input("Chat:")
 
+
 with col1:
-    query_params = st.experimental_get_query_params()
-    if 'student' in query_params:
-        selected_user = query_params['student'][0]
-    else:
-        selected_user = st.selectbox("Talk to:", list(user_data.keys()))
-    st.image(user_data[selected_user], caption=selected_user, use_column_width=True)
-    pre_prompt = st.text_area("Setup", st.session_state.messages[0]["content"],height=500)
-    st.session_state.messages[0]["content"] = pre_prompt
+    st.image(avatar, caption=selected_user, use_column_width=True)
+    #pre_prompt = st.text_area("Setup", st.session_state.messages[0]["content"],height=500)
+    #st.session_state.messages[0]["content"] = pre_prompt
 
 with col2:
     for message in st.session_state.messages[1:]:
@@ -75,6 +82,18 @@ with col2:
         input_placeholder = st.empty()
     with st.chat_message(name="assistant", avatar="assistant"):
         message_placeholder = st.empty()
+
+
+#    avatar_image = "path_to_your_avatar_image.jpg"
+#    message_text = "Hello, this is a message in the chat!"
+#    html_template = f"""
+#    <div style="display: flex; align-items: center; padding: 10px;">
+#        <img src="{avatar_image}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+#        <div style="background-color: #eee; border-radius: 10px; padding: 10px;">{message_text}</div>
+#    </div>
+#    """
+#    components.html(html_template, height=100)
+
 
     if prompt_text:
         input_placeholder.markdown(prompt_text)
@@ -89,10 +108,23 @@ with col2:
             ],
             model=st.session_state["openai_model"],
             stream=True,
-            temperature=0.5
+            temperature=0.5,
+            max_tokens=8192
         ):
             full_response += response.choices[0].delta.content or ""
             message_placeholder.markdown(full_response + "▌")
         message_placeholder.markdown(full_response)
         st.session_state.messages.append({"role": "assistant", "content": full_response})
 
+
+components.html( """
+<script>
+window.addEventListener('beforeunload', function (e) {
+alert("请勿关闭页面，请联系指导老师")
+    // 取消事件的默认动作
+    e.preventDefault();
+    // Chrome 需要设置 returnValue
+    e.returnValue = "您是否想要关闭网页？请联系指导老师";
+});
+</script>
+""")
