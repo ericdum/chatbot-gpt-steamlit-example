@@ -5,7 +5,7 @@ import os
 
 query_params = st.query_params
 if 'student' in query_params:
-    selected_user = query_params['student'][0].lower()
+    selected_user = query_params['student'].lower()
 else:
     #selected_user = st.selectbox("Talk to:", list(user_data.keys()))
     selected_user = "jerry"
