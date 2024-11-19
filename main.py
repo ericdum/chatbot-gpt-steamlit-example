@@ -3,7 +3,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import os
 
-query_params = st.experimental_get_query_params()
+query_params = st.query_params
 if 'student' in query_params:
     selected_user = query_params['student'][0].lower()
 else:
@@ -61,7 +61,7 @@ if "messages" not in st.session_state:
     }]
 
 if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-3.5-turbo-16k-0613"
+    st.session_state["openai_model"] = "gpt-4o"
 
 
 col1, col2 = st.columns([0.3, 0.7])
@@ -69,7 +69,7 @@ prompt_text = st.chat_input("Chat:")
 
 
 with col1:
-    st.image(avatar, caption=selected_user, use_column_width=True)
+    st.image(avatar, caption=selected_user, use_container_width=True)
     #pre_prompt = st.text_area("Setup", st.session_state.messages[0]["content"],height=500)
     #st.session_state.messages[0]["content"] = pre_prompt
 
@@ -82,18 +82,6 @@ with col2:
         input_placeholder = st.empty()
     with st.chat_message(name="assistant", avatar="assistant"):
         message_placeholder = st.empty()
-
-
-#    avatar_image = "path_to_your_avatar_image.jpg"
-#    message_text = "Hello, this is a message in the chat!"
-#    html_template = f"""
-#    <div style="display: flex; align-items: center; padding: 10px;">
-#        <img src="{avatar_image}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
-#        <div style="background-color: #eee; border-radius: 10px; padding: 10px;">{message_text}</div>
-#    </div>
-#    """
-#    components.html(html_template, height=100)
-
 
     if prompt_text:
         input_placeholder.markdown(prompt_text)
