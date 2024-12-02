@@ -1,6 +1,6 @@
 from openai import OpenAI
 import streamlit as st
-import streamlit.components.v1 as components
+from streamlit.components.v1 import html
 import os
 
 query_params = st.query_params
@@ -65,24 +65,33 @@ if "openai_model" not in st.session_state:
 
 
 col1, col2 = st.columns([0.3, 0.7])
-prompt_text = st.chat_input("Chat:")
 
+ONE_WEEK_PROMPT = "assume a week later, you may did something or not, keep talking to me."
 
 with col1:
     st.image(avatar, caption=selected_user, use_container_width=True)
     #pre_prompt = st.text_area("Setup", st.session_state.messages[0]["content"],height=500)
     #st.session_state.messages[0]["content"] = pre_prompt
+    if st.button("one week later"):
+        st.session_state.messages.append({"role": "system", "content": ONE_WEEK_PROMPT})
+
+
 
 with col2:
     for message in st.session_state.messages[1:]:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        if message["content"] == ONE_WEEK_PROMPT:
+            with st.chat_message(message["role"]):
+                st.markdown("One Week Later")
+        else:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
 
     with st.chat_message(name="user", avatar="user"):
         input_placeholder = st.empty()
     with st.chat_message(name="assistant", avatar="assistant"):
         message_placeholder = st.empty()
 
+    prompt_text = st.chat_input("Chat:")
     if prompt_text:
         input_placeholder.markdown(prompt_text)
         #if len(st.session_state.messages) < 2 or prompt != st.session_state.messages[-2]['content']:
@@ -105,7 +114,7 @@ with col2:
         st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 
-components.html( """
+st.markdown( """
 <script>
 window.addEventListener('beforeunload', function (e) {
 alert("请勿关闭页面，请联系指导老师")
@@ -113,6 +122,11 @@ alert("请勿关闭页面，请联系指导老师")
     e.preventDefault();
     // Chrome 需要设置 returnValue
     e.returnValue = "您是否想要关闭网页？请联系指导老师";
+     if (confirm("continue close")) {
+      return true;
+     } else {
+      return false;
+     }
 });
 </script>
-""")
+""", unsafe_allow_html=True)
