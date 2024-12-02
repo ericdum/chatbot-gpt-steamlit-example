@@ -66,13 +66,13 @@ if "openai_model" not in st.session_state:
 
 col1, col2 = st.columns([0.3, 0.7])
 
-ONE_WEEK_PROMPT = "assume a week later, you may did something or not, keep talking to me."
+ONE_WEEK_PROMPT = "Assume a week later, you may do something or not, keep talking to me."
 
 with col1:
     st.image(avatar, caption=selected_user, use_container_width=True)
     #pre_prompt = st.text_area("Setup", st.session_state.messages[0]["content"],height=500)
     #st.session_state.messages[0]["content"] = pre_prompt
-    if st.button("one week later"):
+    if st.button("一周后"):
         st.session_state.messages.append({"role": "system", "content": ONE_WEEK_PROMPT})
 
 
@@ -81,7 +81,7 @@ with col2:
     for message in st.session_state.messages[1:]:
         if message["content"] == ONE_WEEK_PROMPT:
             with st.chat_message(message["role"]):
-                st.markdown("One Week Later")
+                st.markdown("一周过去了，您可以继续与我对话")
         else:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
